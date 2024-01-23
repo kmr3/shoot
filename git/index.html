@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Shooting Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #3498db;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .bullet {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            background-color: #e74c3c;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #2ecc71;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="player"></div>
+    <div class="enemy"></div>
+    <div id="score">Score: 0</div>
+
+    <script>
+        const player = document.getElementById('player');
+        const enemy = document.querySelector('.enemy');
+        const bullets = [];
+        let score = 0;
+
+        // Player controls
+        window.addEventListener('deviceorientation', handleOrientation);
+
+        function handleOrientation(event) {
+            const tiltLR = event.gamma;
+            const playerLeft = (tiltLR + 90) + 'deg';
+            player.style.left = playerLeft;
+        }
+
+        // Game loop
+        function gameLoop() {
+            moveBullets();
+            moveEnemy();
+            checkCollisions();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Move bullets
+        function moveBullets() {
+            bullets.forEach(bullet => {
+                const bulletTop = parseInt(bullet.style.top);
+                bullet.style.top = bulletTop - 5 + 'px';
+
+                // Remove bullets when out of screen
+                if (bulletTop < 0) {
+                    bullet.remove();
+                }
+            });
+        }
+
+        // Move enemy
+        function moveEnemy() {
+            const enemyTop = parseInt(enemy.style.top);
+            enemy.style.top = enemyTop + 2 + 'px';
+
+            // Reset enemy position when out of screen
+            if (enemyTop > window.innerHeight) {
+                enemy.style.top = '10px';
+                enemy.style.left = Math.floor(Math.random() * 90) + '%';
+            }
+        }
+
+        // Create a bullet
+        function shoot() {
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = player.style.left;
+            bullet.style.top = (parseInt(player.style.bottom) + 50) + 'px';
+            document.body.appendChild(bullet);
+            bullets.push(bullet);
+        }
+
+        // Check for collisions
+        function checkCollisions() {
+            bullets.forEach(bullet => {
+                const bulletRect = bullet.getBoundingClientRect();
+                const enemyRect = enemy.getBoundingClientRect();
+
+                if (
+                    bulletRect.left < enemyRect.right &&
+                    bulletRect.right > enemyRect.left &&
+                    bulletRect.top < enemyRect.bottom &&
+                    bulletRect.bottom > enemyRect.top
+                ) {
+                    // Collision detected
+                    resetEnemy();
+                    bullet.remove();
+                    updateScore(10); // Update score on collision
+                }
+            });
+        }
+
+        // Reset enemy position
+        function resetEnemy() {
+            enemy.style.top = '10px';
+            enemy.style.left = Math.floor(Math.random() * 90) + '%';
+        }
+
+        // Update score
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').textContent = 'Score: ' + score;
+        }
+
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
+</html>
